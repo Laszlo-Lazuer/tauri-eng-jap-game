@@ -1,51 +1,110 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
+import React, { useState, useEffect } from 'react';
+import './App.css';
+
+const questions = [
+  {
+    questionText: 'What is the Hiragana for "a"?',
+    answerOptions: [
+      { answerText: 'あ', isCorrect: true },
+      { answerText: 'い', isCorrect: false },
+      { answerText: 'う', isCorrect: false },
+      { answerText: 'え', isCorrect: false },
+    ],
+  },
+  {
+    questionText: 'What is the Katakana for "ka"?',
+    answerOptions: [
+      { answerText: 'カ', isCorrect: true },
+      { answerText: 'キ', isCorrect: false },
+      { answerText: 'ク', isCorrect: false },
+      { answerText: 'ケ', isCorrect: false },
+    ],
+  },
+  {
+    questionText: 'What is the Hiragana for "su"?',
+    answerOptions: [
+      { answerText: 'す', isCorrect: true },
+      { answerText: 'せ', isCorrect: false },
+      { answerText: 'さ', isCorrect: false },
+      { answerText: 'そ', isCorrect: false },
+    ],
+  },
+  {
+    questionText: 'What is the Katakana for "ne"?',
+    answerOptions: [
+      { answerText: 'ネ', isCorrect: true },
+      { answerText: 'ヌ', isCorrect: false },
+      { answerText: 'ナ', isCorrect: false },
+      { answerText: 'ニ', isCorrect: false },
+    ],
+  },
+  // Add more questions as needed
+];
+
+// Fisher-Yates (Knuth) Shuffle Algorithm
+const shuffleArray = (array) => {
+  let shuffledArray = array.slice(); // Create a copy of the array
+  for (let i = shuffledArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+  }
+  return shuffledArray;
+};
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showScore, setShowScore] = useState(false);
+  const [shuffledQuestions, setShuffledQuestions] = useState([]);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+  useEffect(() => {
+    const shuffled = questions.map((q) => ({
+      ...q,
+      answerOptions: shuffleArray(q.answerOptions),
+    }));
+    setShuffledQuestions(shuffled);
+  }, []);
+
+  const handleAnswerOptionClick = (isCorrect) => {
+    if (isCorrect) {
+      setScore(score + 1);
+    }
+
+    const nextQuestion = currentQuestion + 1;
+    if (nextQuestion < shuffledQuestions.length) {
+      setCurrentQuestion(nextQuestion);
+    } else {
+      setShowScore(true);
+    }
+  };
+
+  if (shuffledQuestions.length === 0) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-
-      <p>{greetMsg}</p>
+    <div className="app">
+      {showScore ? (
+        <div className="score-section">
+          You scored {score} out of {shuffledQuestions.length}
+        </div>
+      ) : (
+        <>
+          <div className="question-section">
+            <div className="question-count">
+              <span>Question {currentQuestion + 1}</span>/{shuffledQuestions.length}
+            </div>
+            <div className="question-text">{shuffledQuestions[currentQuestion].questionText}</div>
+          </div>
+          <div className="answer-section">
+            {shuffledQuestions[currentQuestion].answerOptions.map((answerOption, index) => (
+              <button key={index} onClick={() => handleAnswerOptionClick(answerOption.isCorrect)}>
+                {answerOption.answerText}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
