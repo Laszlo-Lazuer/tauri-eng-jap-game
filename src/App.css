@@ -4,6 +4,13 @@
   margin: 20px;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 .question-section {
   margin-bottom: 20px;
 }
@@ -18,10 +25,15 @@
   margin-bottom: 20px;
 }
 
+.answer-section input {
+  font-size: 18px;
+  padding: 10px;
+  margin-right: 10px;
+}
+
 .answer-section button {
   font-size: 18px;
   padding: 10px;
-  margin: 5px;
   cursor: pointer;
 }
 
