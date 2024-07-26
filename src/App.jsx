@@ -56,6 +56,9 @@ function App() {
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [pastScores, setPastScores] = useState([]);
+  const [userName, setUserName] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const shuffled = questions.map((q) => ({
@@ -63,6 +66,24 @@ function App() {
       answerOptions: shuffleArray(q.answerOptions),
     }));
     setShuffledQuestions(shuffled);
+
+    const storedScores = localStorage.getItem('pastScores');
+    if (storedScores) {
+      setPastScores(JSON.parse(storedScores));
+    }
+
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
+      setLoading(false);
+    } else {
+      const name = prompt('Enter your name:');
+      if (name) {
+        setUserName(name);
+        localStorage.setItem('userName', name);
+      }
+      setLoading(false);
+    }
   }, []);
 
   const handleAnswerOptionClick = (isCorrect) => {
@@ -74,19 +95,54 @@ function App() {
     if (nextQuestion < shuffledQuestions.length) {
       setCurrentQuestion(nextQuestion);
     } else {
+      const initials = userName.slice(0, 3).toUpperCase();
+      const timestamp = new Date().toLocaleString();
+      const newPastScores = [...pastScores, { initials, score: score + (isCorrect ? 1 : 0), timestamp }];
+      setPastScores(newPastScores);
+      localStorage.setItem('pastScores', JSON.stringify(newPastScores));
       setShowScore(true);
     }
   };
 
-  if (shuffledQuestions.length === 0) {
+  const resetQuiz = () => {
+    setScore(0);
+    setCurrentQuestion(0);
+    setShowScore(false);
+  };
+
+  if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="app">
       {showScore ? (
-        <div className="score-section">
-          You scored {score} out of {shuffledQuestions.length}
+        <div>
+          <div className="score-section">
+            You scored {score} out of {shuffledQuestions.length}
+          </div>
+          <button onClick={resetQuiz}>Play Again</button>
+          <div className="past-scores">
+            <h3>Scoreboard</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Initials</th>
+                  <th>Score</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pastScores.map((entry, index) => (
+                  <tr key={index}>
+                    <td>{entry.initials}</td>
+                    <td>{entry.score}</td>
+                    <td>{entry.timestamp}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <>
