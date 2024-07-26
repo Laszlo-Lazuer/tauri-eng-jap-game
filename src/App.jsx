@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import NameModal from './NameModal';
 
 const questions = [
   {
@@ -77,14 +78,14 @@ function App() {
       setUserName(storedName);
       setLoading(false);
     } else {
-      const name = prompt('Enter your name:');
-      if (name) {
-        setUserName(name);
-        localStorage.setItem('userName', name);
-      }
       setLoading(false);
     }
   }, []);
+
+  const handleNameSave = (name) => {
+    setUserName(name);
+    localStorage.setItem('userName', name);
+  };
 
   const handleAnswerOptionClick = (isCorrect) => {
     if (isCorrect) {
@@ -116,49 +117,54 @@ function App() {
 
   return (
     <div className="app">
-      {showScore ? (
-        <div>
-          <div className="score-section">
-            You scored {score} out of {shuffledQuestions.length}
-          </div>
-          <button onClick={resetQuiz}>Play Again</button>
-          <div className="past-scores">
-            <h3>Scoreboard</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Initials</th>
-                  <th>Score</th>
-                  <th>Timestamp</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pastScores.map((entry, index) => (
-                  <tr key={index}>
-                    <td>{entry.initials}</td>
-                    <td>{entry.score}</td>
-                    <td>{entry.timestamp}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
+      {!userName && <NameModal onSave={handleNameSave} />}
+      {userName && (
         <>
-          <div className="question-section">
-            <div className="question-count">
-              <span>Question {currentQuestion + 1}</span>/{shuffledQuestions.length}
+          {showScore ? (
+            <div>
+              <div className="score-section">
+                You scored {score} out of {shuffledQuestions.length}
+              </div>
+              <button onClick={resetQuiz}>Play Again</button>
+              <div className="past-scores">
+                <h3>Scoreboard</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Initials</th>
+                      <th>Score</th>
+                      <th>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pastScores.map((entry, index) => (
+                      <tr key={index}>
+                        <td>{entry.initials}</td>
+                        <td>{entry.score}</td>
+                        <td>{entry.timestamp}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="question-text">{shuffledQuestions[currentQuestion].questionText}</div>
-          </div>
-          <div className="answer-section">
-            {shuffledQuestions[currentQuestion].answerOptions.map((answerOption, index) => (
-              <button key={index} onClick={() => handleAnswerOptionClick(answerOption.isCorrect)}>
-                {answerOption.answerText}
-              </button>
-            ))}
-          </div>
+          ) : (
+            <>
+              <div className="question-section">
+                <div className="question-count">
+                  <span>Question {currentQuestion + 1}</span>/{shuffledQuestions.length}
+                </div>
+                <div className="question-text">{shuffledQuestions[currentQuestion].questionText}</div>
+              </div>
+              <div className="answer-section">
+                {shuffledQuestions[currentQuestion].answerOptions.map((answerOption, index) => (
+                  <button key={index} onClick={() => handleAnswerOptionClick(answerOption.isCorrect)}>
+                    {answerOption.answerText}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
